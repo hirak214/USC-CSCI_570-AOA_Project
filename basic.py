@@ -13,6 +13,7 @@ ALPHA = {
 def generate_string(base, indices):
     s = base
     for idx in indices:
+        idx = idx + 1
         to_insert = s
         s = s[:idx] + to_insert + s[idx:]
     return s
@@ -67,17 +68,24 @@ def main():
         sys.exit(1)
     input_path, output_path = sys.argv[1], sys.argv[2]
 
-    # with open(input_path, 'r') as f:
-    #     base1 = f.readline().strip()
-    #     j = int(f.readline().strip())
-    #     idx1 = [int(f.readline().strip()) for _ in range(j)]
-    #     base2 = f.readline().strip()
-    #     k = int(f.readline().strip())
-    #     idx2 = [int(f.readline().strip()) for _ in range(k)]
-    base1 = "ACTG"
-    idx1 = [3, 6, 1, 1]
-    base2 = "TACG"
-    idx2 = [1, 2, 9, 2]
+    with open(input_path, 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+        base1 = lines[0]
+        idx1 = []
+        j = 1
+        while lines[j].isdigit():
+            idx1.append(int(lines[j]))
+            j += 1
+
+        base2 = lines[j]
+        idx2 = []
+        k = j + 1
+        while k < len(lines) and lines[k].isdigit():
+            idx2.append(int(lines[k]))
+            k += 1
+        idx1 = [int(x) for x in idx1]
+        idx2 = [int(x) for x in idx2]
+
 
     s1 = generate_string(base1, idx1)
     s2 = generate_string(base2, idx2)
