@@ -44,10 +44,10 @@ def basic_alignment(s1, s2):
             j -= 1
         elif i > 0 and dp[i][j] == dp[i-1][j] + delta:
             a1.append(s1[i-1])
-            a2.append('-')
+            a2.append('_')
             i -= 1
         else:
-            a1.append('-')
+            a1.append('_')
             a2.append(s2[j-1])
             j -= 1
     a1.reverse()
