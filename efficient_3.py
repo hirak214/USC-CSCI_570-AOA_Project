@@ -2,7 +2,6 @@ import sys
 import time
 import psutil
 
-# Constants
 delta = 30
 ALPHA = {
     ('A', 'A'): 0,   ('A', 'C'): 110, ('A', 'G'): 48,  ('A', 'T'): 94,
@@ -14,80 +13,96 @@ ALPHA = {
 def generate_string(base, indices):
     s = base
     for idx in indices:
-        idx = idx + 1
-        to_insert = s
-        s = s[:idx] + to_insert + s[idx:]
+        s = s[:idx+1] + s + s[idx+1:]
     return s
 
-
-def space_efficient_cost(X, Y):
-    """Compute the last row of the DP alignment cost table for X vs Y."""
-    m, n = len(X), len(Y)
-    prev = [j * delta for j in range(n + 1)]
-    curr = [0] * (n + 1)
-
-    for i in range(1, m + 1):
-        curr[0] = i * delta
-        for j in range(1, n + 1):
-            sub_cost = ALPHA[(X[i - 1], Y[j - 1])]
-            curr[j] = min(
-                prev[j] + delta,
-                curr[j - 1] + delta,
-                prev[j - 1] + sub_cost
-            )
-        prev, curr = curr, prev
-    return prev
-
-
-def hirschberg(X, Y):
-    if len(X) == 0:
-        return ('_' * len(Y), Y)
-    if len(Y) == 0:
-        return (X, '_' * len(X))
-    if len(X) == 1 or len(Y) == 1:
-        _, a1, a2 = basic_alignment(X, Y)
-        return a1, a2
-
-
-    xlen = len(X)
-    xmid = xlen // 2
-
-    L1 = space_efficient_cost(X[:xmid], Y)
-    L2 = space_efficient_cost(X[xmid:][::-1], Y[::-1])
-
-    partition = max(range(len(Y) + 1), key=lambda j: L1[j] + L2[len(Y) - j])
-
-    A1, B1 = hirschberg(X[:xmid], Y[:partition])
-    A2, B2 = hirschberg(X[xmid:], Y[partition:])
-    return (A1 + A2, B1 + B2)
-
-
-def basic_alignment(s1, s2):
-    m, n = len(s1), len(s2)
-    dp = [[0]*(n+1) for _ in range(m+1)]
-    for i in range(m+1):
-        dp[i][0] = i * delta
-    for j in range(n+1):
-        dp[0][j] = j * delta
+def compute_forward_dp(x_part, y_part):
+    m = len(x_part)
+    n = len(y_part)
+    prev_row = [delta * j for j in range(n+1)]
     for i in range(1, m+1):
+        curr_row = [0] * (n+1)
+        curr_row[0] = prev_row[0] + delta
         for j in range(1, n+1):
-            dp[i][j] = min(
-                dp[i-1][j] + delta,
-                dp[i][j-1] + delta,
-                dp[i-1][j-1] + ALPHA[(s1[i-1], s2[j-1])]
-            )
-    a1, a2 = [], []
-    i, j = m, n
-    while i > 0 or j > 0:
-        if i > 0 and j > 0 and dp[i][j] == dp[i-1][j-1] + ALPHA[(s1[i-1], s2[j-1])]:
-            a1.append(s1[i-1]); a2.append(s2[j-1]); i -= 1; j -= 1
-        elif i > 0 and dp[i][j] == dp[i-1][j] + delta:
-            a1.append(s1[i-1]); a2.append('_'); i -= 1
-        else:
-            a1.append('_'); a2.append(s2[j-1]); j -= 1
-    a1.reverse(); a2.reverse()
-    return dp[m][n], ''.join(a1), ''.join(a2)
+            match = prev_row[j-1] + ALPHA[(x_part[i-1], y_part[j-1])]
+            delete = prev_row[j] + delta
+            insert = curr_row[j-1] + delta
+            curr_row[j] = min(match, delete, insert)
+        prev_row = curr_row
+    return prev_row
 
+def align_single(x, y):
+    if len(x) == 1:
+        a = x[0]
+        n = len(y)
+        prev_row = [j * delta for j in range(n+1)]
+        curr_row = [prev_row[0] + delta]
+        for j in range(1, n+1):
+            curr_j = min(
+                prev_row[j-1] + ALPHA[(a, y[j-1])],
+                prev_row[j] + delta,
+                curr_row[j-1] + delta
+            )
+            curr_row.append(curr_j)
+        curr_row = curr_row[:n+1]
+        cost = curr_row[-1]
+        a1, a2 = [], []
+        i, j = 1, n
+        current_row = curr_row
+        while i > 0 or j > 0:
+            if i > 0 and j > 0 and current_row[j] == prev_row[j-1] + ALPHA[(a, y[j-1])]:
+                a1.append(a)
+                a2.append(y[j-1])
+                i -= 1
+                j -= 1
+            elif i > 0 and current_row[j] == prev_row[j] + delta:
+                a1.append(a)
+                a2.append('_')
+                i -= 1
+            else:
+                a1.append('_')
+                a2.append(y[j-1])
+                j -= 1
+            if i == 0:
+                while j > 0:
+                    a1.append('_')
+                    a2.append(y[j-1])
+                    j -= 1
+            if j == 0 and i > 0:
+                while i > 0:
+                    a1.append(a)
+                    a2.append('_')
+                    i -= 1
+        a1.reverse()
+        a2.reverse()
+        return (cost, ''.join(a1), ''.join(a2))
+    else:
+        cost, a2, a1 = align_single(y, x)
+        return (cost, a1, a2)
+
+def memory_efficient_alignment(x, y):
+    if len(x) == 0:
+        return (delta * len(y), '_' * len(y), y)
+    if len(y) == 0:
+        return (delta * len(x), x, '_' * len(x))
+    if len(x) == 1 or len(y) == 1:
+        return align_single(x, y)
+    x_mid = len(x) // 2
+    forward = compute_forward_dp(x[:x_mid], y)
+    x_rev = x[x_mid:][::-1]
+    y_rev = y[::-1]
+    backward = compute_forward_dp(x_rev, y_rev)
+    min_cost = float('inf')
+    split_k = 0
+    n = len(y)
+    for k in range(n + 1):
+        current_cost = forward[k] + backward[n - k]
+        if current_cost < min_cost:
+            min_cost = current_cost
+            split_k = k
+    (cost1, a1_left, a2_left) = memory_efficient_alignment(x[:x_mid], y[:split_k])
+    (cost2, a1_right, a2_right) = memory_efficient_alignment(x[x_mid:], y[split_k:])
+    return (cost1 + cost2, a1_left + a1_right, a2_left + a2_right)
 
 def process_memory():
     return int(psutil.Process().memory_info().rss / 1024)
@@ -99,38 +114,32 @@ def time_wrapper(func, *args):
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python3 efficient_3.py input.txt output.txt")
+        print("Usage: python3 basic_3.py input.txt output.txt")
         sys.exit(1)
-
     input_path, output_path = sys.argv[1], sys.argv[2]
+
     with open(input_path, 'r') as f:
         lines = [line.strip() for line in f.readlines()]
         base1 = lines[0]
         idx1 = []
         j = 1
-        while lines[j].isdigit():
+        while j < len(lines) and lines[j].isdigit():
             idx1.append(int(lines[j]))
             j += 1
+
         base2 = lines[j]
         idx2 = []
         k = j + 1
         while k < len(lines) and lines[k].isdigit():
             idx2.append(int(lines[k]))
             k += 1
-        idx1 = [int(x) for x in idx1]
-        idx2 = [int(x) for x in idx2]
 
     s1 = generate_string(base1, idx1)
     s2 = generate_string(base2, idx2)
 
     before_mem = process_memory()
-    (a1, a2), elapsed = time_wrapper(hirschberg, s1, s2)
+    (cost, a1, a2), elapsed = time_wrapper(memory_efficient_alignment, s1, s2)
     after_mem = process_memory()
-
-    cost = sum(
-        delta if a1[i] == '_' or a2[i] == '_' else ALPHA[(a1[i], a2[i])]
-        for i in range(len(a1))
-    )
 
     with open(output_path, 'w') as out:
         out.write(f"{cost}\n{a1}\n{a2}\n{elapsed:.6f}\n{after_mem - before_mem}\n")
