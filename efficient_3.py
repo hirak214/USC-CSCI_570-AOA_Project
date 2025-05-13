@@ -2,7 +2,7 @@ import sys, time
 import psutil
 
 GAP_COST = 30
-mismatched_cost = {
+ALPHA = {
     ('A', 'A'): 0,   ('A', 'C'): 110, ('A', 'G'): 48,  ('A', 'T'): 94,
     ('C', 'A'): 110, ('C', 'C'): 0,   ('C', 'G'): 118, ('C', 'T'): 48,
     ('G', 'A'): 48,  ('G', 'C'): 118, ('G', 'G'): 0,   ('G', 'T'): 110,
@@ -23,7 +23,7 @@ def get_forward_dp(x_part, y_part):
         current_row = [0] * (n+1)
         current_row[0] = prev_row[0] + GAP_COST
         for j in range(1, n+1):
-            match = prev_row[j-1] + mismatched_cost[(x_part[i-1], y_part[j-1])]
+            match = prev_row[j-1] + ALPHA[(x_part[i-1], y_part[j-1])]
             delete = prev_row[j] + GAP_COST
             insert = current_row[j-1] + GAP_COST
             current_row[j] = min(match, delete, insert)
@@ -38,7 +38,7 @@ def align_single(x, y):
         curr_row = [prev_row[0] + GAP_COST]
         for j in range(1, n+1):
             curr_j = min(
-                prev_row[j-1] + mismatched_cost[(a, y[j-1])],
+                prev_row[j-1] + ALPHA[(a, y[j-1])],
                 prev_row[j] + GAP_COST,
                 curr_row[j-1] + GAP_COST
             )
@@ -49,7 +49,7 @@ def align_single(x, y):
         i, j = 1, n
         current_row = curr_row
         while i > 0 or j > 0:
-            if i > 0 and j > 0 and current_row[j] == prev_row[j-1] + mismatched_cost[(a, y[j-1])]:
+            if i > 0 and j > 0 and current_row[j] == prev_row[j-1] + ALPHA[(a, y[j-1])]:
                 aligned1.append(a)
                 aligned2.append(y[j-1])
                 i -= 1
