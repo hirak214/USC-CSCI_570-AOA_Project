@@ -105,7 +105,7 @@ def memory_efficient_alignment(x, y):
     return (cost1 + cost2, a1_left + a1_right, a2_left + a2_right)
 
 def process_memory():
-    return int(psutil.Process().memory_info().rss / 1024)
+    return psutil.Process().memory_info().rss / 1024
 
 def time_wrapper(func, *args):
     start = time.time()
@@ -113,9 +113,7 @@ def time_wrapper(func, *args):
     return result, (time.time() - start) * 1000
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python3 basic_3.py input.txt output.txt")
-        sys.exit(1)
+
     input_path, output_path = sys.argv[1], sys.argv[2]
 
     with open(input_path, 'r') as f:
@@ -142,7 +140,7 @@ def main():
     after_mem = process_memory()
 
     with open(output_path, 'w') as out:
-        out.write(f"{cost}\n{a1}\n{a2}\n{elapsed:.6f}\n{after_mem - before_mem}\n")
+        out.write(f"{cost}\n{a1}\n{a2}\n{elapsed}\n{after_mem - before_mem}\n")
 
 if __name__ == '__main__':
     main()
