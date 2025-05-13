@@ -1,8 +1,5 @@
-# Ignore everything
-*
-
-# But don't ignore these
 !basic.cpp
 !basic.sh
 !datapoints/
-!datapoints/**
+
+.DS_Store
