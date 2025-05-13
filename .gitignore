@@ -172,3 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+/datapoints/basic_op
+/datapoints/efficient_op
+Documentation/.DS_Store
+.DS_Store
