@@ -2,7 +2,7 @@
 # USC - CSCI570 - Spring25 Project
 ## Analysis of Algorithms
 
-A brief description of what this project does and who it's for
+A brief description of this project 
 
 
 ## Installation
