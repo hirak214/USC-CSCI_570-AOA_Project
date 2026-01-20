@@ -21,7 +21,7 @@ Both implementations:
 ### String Generation
 Input files contain:
 - A base string (e.g., "ACTG")
-- Indices where the string should be doubled (inserted after position)
+- Indices where the entire current string should be inserted
 - This generates exponentially growing test strings
 
 ### Alignment Scoring
