@@ -1,7 +1,7 @@
 # USC - CSCI570 - Spring25 Project
 ## Sequence Alignment Using Dynamic Programming
 
-This project implements sequence alignment algorithms for DNA/protein sequences using dynamic programming. It includes both a **basic O(mn) space** implementation and a **memory-efficient O(min(m,n)) space** implementation using Hirschberg's algorithm.
+This project implements sequence alignment algorithms for DNA/protein sequences using dynamic programming. It includes both a **basic O(mn) space** implementation and a **memory-efficient O(m+n) space** implementation using Hirschberg's algorithm.
 
 ## Overview
 
@@ -139,7 +139,7 @@ TACG
 ```
 .
 ├── basic_3.py              # Python basic O(mn) implementation
-├── efficient_3.py          # Python memory-efficient O(min(m,n)) implementation
+├── efficient_3.py          # Python memory-efficient O(m+n) space implementation
 ├── basic.cpp               # C++ basic implementation
 ├── basic.sh                # Shell script to run all C++ test cases
 ├── SampleTestCases/        # Sample test cases with expected outputs
@@ -153,7 +153,7 @@ The implementations allow comparison between:
 - **Time Complexity**: Both are O(mn)
 - **Space Complexity**: 
   - Basic: O(mn) - stores full DP table
-  - Efficient: O(min(m,n)) - uses Hirschberg's algorithm
+  - Efficient: O(m+n) - uses Hirschberg's algorithm (O(n) for DP rows + O(m) recursion depth)
 
 Use the different test cases to analyze how time and memory scale with input size.
 
