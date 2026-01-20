@@ -139,7 +139,7 @@ TACG
 ```
 .
 ├── basic_3.py              # Python basic O(mn) implementation
-├── efficient_3.py          # Python memory-efficient O(n) implementation
+├── efficient_3.py          # Python memory-efficient O(min(m,n)) implementation
 ├── basic.cpp               # C++ basic implementation
 ├── basic.sh                # Shell script to run all C++ test cases
 ├── SampleTestCases/        # Sample test cases with expected outputs
